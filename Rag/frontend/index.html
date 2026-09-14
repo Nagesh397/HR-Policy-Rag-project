@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HR Policy Assistant</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; color: #1f2937; }
+    h1 { margin-bottom: 8px; }
+    .muted { color: #6b7280; }
+    #messages { min-height: 260px; border: 1px solid #d1d5db; border-radius: 8px; padding: 16px; margin: 24px 0; }
+    .message { margin: 12px 0; white-space: pre-wrap; }
+    .user { font-weight: bold; }
+    .answer { background: #f3f4f6; padding: 12px; border-radius: 6px; }
+    form { display: flex; gap: 8px; }
+    input { flex: 1; padding: 12px; border: 1px solid #9ca3af; border-radius: 6px; font-size: 16px; }
+    button { padding: 12px 18px; border: 0; border-radius: 6px; background: #2563eb; color: white; cursor: pointer; }
+    button:disabled { background: #9ca3af; cursor: wait; }
+    .sources { font-size: 13px; color: #4b5563; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>HR Policy Assistant</h1>
+  <p class="muted">Ask questions about the approved HR policy documents.</p>
+  <div id="messages"><p class="muted">Your answers will appear here.</p></div>
+  <form id="chat-form">
+    <input id="question" placeholder="Ask an HR policy question" required />
+    <button id="send" type="submit">Ask</button>
+  </form>
+  <script>
+    const form = document.getElementById("chat-form");
+    const questionInput = document.getElementById("question");
+    const messages = document.getElementById("messages");
+    const sendButton = document.getElementById("send");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const question = questionInput.value.trim();
+      if (!question) return;
+      messages.innerHTML += `<div class="message user">You: ${escapeHtml(question)}</div>`;
+      questionInput.value = "";
+      sendButton.disabled = true;
+      try {
+        const response = await fetch("http://localhost:8000/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "The backend could not answer.");
+        const sources = data.sources.map(source => `${source.document}, page ${source.page || "unknown"}`).join("; ");
+        messages.innerHTML += `<div class="message answer">${escapeHtml(data.answer)}<div class="sources">Sources: ${escapeHtml(sources)}</div></div>`;
+      } catch (error) {
+        messages.innerHTML += `<div class="message answer">Error: ${escapeHtml(error.message)}</div>`;
+      } finally {
+        sendButton.disabled = false;
+        questionInput.focus();
+      }
+    });
+
+    function escapeHtml(value) {
+      const element = document.createElement("div");
+      element.textContent = value;
+      return element.innerHTML;
+    }
+  </script>
+</body>
+</html>

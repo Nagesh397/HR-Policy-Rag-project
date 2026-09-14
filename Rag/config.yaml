@@ -1,0 +1,9 @@
+qdrant:
+  host: "localhost"
+  port: 6333
+  collection_name: "hr_policy_collection"
+  vector_size: 768
+  
+ollama:
+  llm_model: "llama3.2:3b"
+  embedding_model: "nomic-embed-text"  

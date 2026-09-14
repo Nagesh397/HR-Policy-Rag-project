@@ -1,0 +1,14 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Generated evaluation output
+data/evaluation/evaluation_results.json
+data/evaluation/evaluation_results.md
